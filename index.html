@@ -127,16 +127,25 @@
 
     <div id="attendanceSection" class="hidden fade-in bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8">
       
-      <!-- Back Navigation Header -->
+      <!-- Back Navigation & Enhanced Refresh Controls -->
       <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
         <button onclick="showLandingView()" class="text-xs text-slate-500 hover:text-indigo-600 font-semibold flex items-center space-x-1.5 transition">
           <i class="fa-solid fa-chevron-left"></i>
           <span>Back to Main Menu</span>
         </button>
-        <button onclick="loadTeachers()" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1.5 bg-indigo-50 px-2.5 py-1 rounded-lg">
-          <i class="fa-solid fa-arrows-rotate"></i>
-          <span>Reload Sheet Data</span>
-        </button>
+        
+        <!-- Interactive Refresh & Sync Widget -->
+        <div class="flex items-center gap-2.5">
+          <span id="lastSyncStatus" class="hidden sm:inline-flex text-[11px] text-slate-400 items-center gap-1 font-mono">
+            <i class="fa-regular fa-clock text-slate-400"></i>
+            <span id="lastSyncTime">Auto-sync active</span>
+          </span>
+          <button type="button" id="refreshDataBtn" onclick="manualRefresh()" title="Sync data with Google Sheet"
+                  class="group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-gradient-to-r from-indigo-50 to-indigo-100/70 hover:from-indigo-100 hover:to-indigo-200/80 text-indigo-700 hover:text-indigo-900 border border-indigo-200 shadow-sm transition active:scale-95">
+            <i id="refreshBtnIcon" class="fa-solid fa-arrows-rotate text-indigo-600 transition-transform group-hover:rotate-180 duration-500"></i>
+            <span id="refreshBtnText">Refresh Data</span>
+          </button>
+        </div>
       </div>
 
       <div class="mb-5">
@@ -180,19 +189,42 @@
 
       <form id="attendanceForm" onsubmit="handleAttendanceSubmit(event)" class="space-y-6">
         
-        <!-- Department Selector -->
+        <!-- Department Selector with Instant Click & Auto Sync -->
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-            1. Select Department <span class="text-rose-500">*</span>
-          </label>
-          <div class="grid grid-cols-2 gap-4">
-            <label id="deptLgLabel" class="flex items-center justify-center p-3.5 border-2 border-indigo-600 bg-indigo-50/60 rounded-xl cursor-pointer transition">
-              <input type="radio" name="department" value="LG" checked onchange="onDepartmentChange()" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
-              <span class="ml-2 font-bold text-sm text-indigo-950">LG (Lower Grades)</span>
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+              1. Select Department <span class="text-rose-500">*</span>
             </label>
-            <label id="deptHgLabel" class="flex items-center justify-center p-3.5 border-2 border-slate-200 bg-slate-50/50 rounded-xl cursor-pointer transition">
-              <input type="radio" name="department" value="HG" onchange="onDepartmentChange()" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
-              <span class="ml-2 font-bold text-sm text-slate-700">HG (Higher Grades)</span>
+            <span class="text-[11px] text-indigo-600 font-medium flex items-center gap-1">
+              <i class="fa-solid fa-bolt text-amber-500 text-[10px]"></i> Auto-syncs on selection
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <!-- LG Selection Card -->
+            <label id="deptLgLabel" onclick="selectDepartment('LG')" 
+                   class="relative flex items-center justify-between p-4 border-2 border-indigo-600 bg-indigo-50/70 rounded-2xl cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md">
+              <div class="flex items-center space-x-3">
+                <input type="radio" name="department" value="LG" checked onchange="onDepartmentChange()" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                <div>
+                  <p class="font-bold text-sm text-indigo-950">LG (Lower Grades)</p>
+                  <p class="text-[11px] text-indigo-600/90 font-medium">Wednesdays &bull; 12:35 PM - 1:00 PM</p>
+                </div>
+              </div>
+              <span id="deptLgBadge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-600 text-white">Active</span>
+            </label>
+
+            <!-- HG Selection Card -->
+            <label id="deptHgLabel" onclick="selectDepartment('HG')" 
+                   class="relative flex items-center justify-between p-4 border-2 border-slate-200 bg-slate-50/50 rounded-2xl cursor-pointer transition-all duration-200 hover:border-slate-300 hover:shadow-sm">
+              <div class="flex items-center space-x-3">
+                <input type="radio" name="department" value="HG" onchange="onDepartmentChange()" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                <div>
+                  <p class="font-bold text-sm text-slate-700">HG (Higher Grades)</p>
+                  <p class="text-[11px] text-slate-400 font-medium">Tuesdays &bull; 11:20 AM - 11:45 AM</p>
+                </div>
+              </div>
+              <span id="deptHgBadge" class="hidden text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-600 text-white">Active</span>
             </label>
           </div>
           
@@ -724,6 +756,24 @@
       await loadTeachers();
     }
 
+    /**
+     * STREAMING_CHUNK: Handling department selection with automatic synchronization
+     */
+    function selectDepartment(dept) {
+      const targetRadio = document.querySelector(`input[name="department"][value="${dept}"]`);
+      if (targetRadio && !targetRadio.checked) {
+        targetRadio.checked = true;
+        onDepartmentChange();
+      }
+    }
+
+    /**
+     * STREAMING_CHUNK: Manual refresh handler with visual state feedback
+     */
+    async function manualRefresh() {
+      await loadTeachers(true);
+    }
+
     function normalizeTeacherRecord(raw) {
       if (!raw) return null;
       if (Array.isArray(raw)) {
@@ -753,22 +803,41 @@
       const statusPill = document.getElementById('scheduleStatusPill');
       const lgLabel = document.getElementById('deptLgLabel');
       const hgLabel = document.getElementById('deptHgLabel');
+      const lgBadge = document.getElementById('deptLgBadge');
+      const hgBadge = document.getElementById('deptHgBadge');
       const submitBtn = document.getElementById('submitAttendanceBtn');
       const submitBtnText = document.getElementById('submitBtnText');
       const submitBtnIcon = document.getElementById('submitBtnIcon');
       const countBadge = document.getElementById('teacherCountBadge');
       const emptyNotice = document.getElementById('emptyTeacherNotice');
+      
+      // Refresh Button Elements
+      const refreshBtn = document.getElementById('refreshDataBtn');
+      const refreshBtnIcon = document.getElementById('refreshBtnIcon');
+      const refreshBtnText = document.getElementById('refreshBtnText');
+      const lastSyncTimeElem = document.getElementById('lastSyncTime');
 
-      // Update Radio Tab Selection styling
-      if (selectedDept === 'LG') {
-        lgLabel.className = "flex items-center justify-center p-3.5 border-2 border-indigo-600 bg-indigo-50/60 rounded-xl cursor-pointer transition";
-        hgLabel.className = "flex items-center justify-center p-3.5 border-2 border-slate-200 bg-slate-50/50 rounded-xl cursor-pointer transition";
-      } else {
-        hgLabel.className = "flex items-center justify-center p-3.5 border-2 border-indigo-600 bg-indigo-50/60 rounded-xl cursor-pointer transition";
-        lgLabel.className = "flex items-center justify-center p-3.5 border-2 border-slate-200 bg-slate-50/50 rounded-xl cursor-pointer transition";
+      // Update Refresh Button state to Loading
+      if (refreshBtn) {
+        refreshBtn.disabled = true;
+        refreshBtnIcon.className = "fa-solid fa-arrows-rotate fa-spin text-indigo-600";
+        refreshBtnText.textContent = "Syncing...";
       }
 
-      selectElem.innerHTML = `<option value="" disabled selected>-- Loading Teachers from ${selectedDept} Teachers tab... --</option>`;
+      // Update Radio Tab Selection styling & active pills
+      if (selectedDept === 'LG') {
+        lgLabel.className = "relative flex items-center justify-between p-4 border-2 border-indigo-600 bg-indigo-50/70 rounded-2xl cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md";
+        hgLabel.className = "relative flex items-center justify-between p-4 border-2 border-slate-200 bg-slate-50/50 rounded-2xl cursor-pointer transition-all duration-200 hover:border-slate-300 hover:shadow-sm";
+        if (lgBadge) lgBadge.classList.remove('hidden');
+        if (hgBadge) hgBadge.classList.add('hidden');
+      } else {
+        hgLabel.className = "relative flex items-center justify-between p-4 border-2 border-indigo-600 bg-indigo-50/70 rounded-2xl cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md";
+        lgLabel.className = "relative flex items-center justify-between p-4 border-2 border-slate-200 bg-slate-50/50 rounded-2xl cursor-pointer transition-all duration-200 hover:border-slate-300 hover:shadow-sm";
+        if (hgBadge) hgBadge.classList.remove('hidden');
+        if (lgBadge) lgBadge.classList.add('hidden');
+      }
+
+      selectElem.innerHTML = `<option value="" disabled selected>-- Syncing Teachers from ${selectedDept} Teachers tab... --</option>`;
       selectElem.disabled = true;
       meetingDisplay.textContent = "-- Loading Meeting Details... --";
       emptyNotice.classList.add('hidden');
@@ -844,18 +913,31 @@
           selectElem.innerHTML = `<option value="" disabled selected>No teachers found in '${selectedDept} Teachers' tab.</option>`;
           selectElem.disabled = true;
           emptyNotice.classList.remove('hidden');
-          return;
+        } else {
+          selectElem.innerHTML = `<option value="" disabled selected>-- Select Your Full Name (${teachers.length} Teachers) --</option>`;
+          teachers.forEach(function(teacher) {
+            const option = document.createElement('option');
+            option.value = JSON.stringify(teacher);
+            option.textContent = `${teacher.teacherName} (${teacher.eNumber || 'No ID'})`;
+            selectElem.appendChild(option);
+          });
+          selectElem.disabled = false;
         }
 
-        selectElem.innerHTML = `<option value="" disabled selected>-- Select Your Full Name (${teachers.length} Teachers) --</option>`;
-        teachers.forEach(function(teacher) {
-          const option = document.createElement('option');
-          option.value = JSON.stringify(teacher);
-          option.textContent = `${teacher.teacherName} (${teacher.eNumber || 'No ID'})`;
-          selectElem.appendChild(option);
-        });
+        // Update Refresh Button state to Done
+        if (refreshBtn) {
+          const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          if (lastSyncTimeElem) lastSyncTimeElem.textContent = `Synced ${nowStr}`;
 
-        selectElem.disabled = false;
+          refreshBtnIcon.className = "fa-solid fa-check text-emerald-600";
+          refreshBtnText.textContent = "Synced!";
+          
+          setTimeout(() => {
+            refreshBtn.disabled = false;
+            refreshBtnIcon.className = "fa-solid fa-arrows-rotate text-indigo-600 transition-transform group-hover:rotate-180 duration-500";
+            refreshBtnText.textContent = "Refresh Data";
+          }, 1200);
+        }
 
       } catch (err) {
         selectElem.innerHTML = `<option value="" disabled selected>Error connecting to Google Sheet.</option>`;
@@ -863,6 +945,12 @@
         meetingTimeDetails.textContent = "Could not connect to Google Apps Script endpoint.";
         countBadge.textContent = "Error";
         showNotification('error', 'Connection Error', err.message);
+
+        if (refreshBtn) {
+          refreshBtn.disabled = false;
+          refreshBtnIcon.className = "fa-solid fa-triangle-exclamation text-rose-600";
+          refreshBtnText.textContent = "Retry Sync";
+        }
       }
     }
 

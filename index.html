@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Attendance Portal</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Font: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .fade-in {
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between">
+
+  <header class="bg-indigo-950 text-white shadow-xl border-b border-indigo-800/60 sticky top-0 z-40">
+    <div class="max-w-5xl mx-auto px-4 py-3.5 flex justify-between items-center">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="showLandingView()">
+        <div class="p-2.5 bg-indigo-600 rounded-xl shadow-md border border-indigo-400/30">
+          <i class="fa-solid fa-clipboard-user text-xl text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight leading-tight">Teacher Attendance</h1>
+          <p class="text-[11px] text-indigo-300 font-medium">Weekly Meeting Log & Registry</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <span class="hidden sm:inline-flex text-xs bg-indigo-900/80 text-indigo-200 px-3 py-1.5 rounded-lg border border-indigo-700/60 items-center gap-1.5 font-mono">
+          <i class="fa-regular fa-clock text-amber-400"></i>
+          <span id="liveClockText">--:--:--</span>
+        </span>
+        <span class="text-xs bg-indigo-900/80 text-indigo-200 px-3 py-1.5 rounded-lg border border-indigo-700/60 flex items-center gap-1.5">
+          <i class="fa-solid fa-circle text-emerald-400 text-[8px] animate-pulse"></i>
+          <span>Live Sync</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-3xl mx-auto px-4 mt-4 w-full">
+    <div id="notificationBanner" class="hidden p-4 rounded-xl shadow-sm border flex items-start space-x-3 transition-all duration-300 fade-in">
+      <div id="notificationIcon" class="mt-0.5 text-lg"></div>
+      <div class="flex-1">
+        <h4 id="notificationTitle" class="font-bold text-sm"></h4>
+        <p id="notificationMessage" class="text-xs mt-0.5 leading-relaxed"></p>
+      </div>
+      <button onclick="hideNotification()" class="text-slate-400 hover:text-slate-600 p-1">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <main class="max-w-3xl mx-auto px-4 my-6 w-full flex-1">
+
+    <div id="landingView" class="fade-in space-y-6">
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 text-center">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100 mb-4">
+          <i class="fa-solid fa-calendar-check mr-1.5"></i> Meeting Portal
+        </span>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Welcome to Attendance Portal</h2>
+        <p class="text-slate-500 text-sm mt-2 max-w-md mx-auto">Select an option below to confirm your meeting attendance or access the admin panel.</p>
+
+        <!-- Two Action Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+          
+          <!-- Option 1: Record Attendance -->
+          <button onclick="showAttendanceSection()" 
+                  class="group relative bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white p-6 rounded-2xl shadow-lg shadow-indigo-200 hover:shadow-xl transition-all duration-200 text-left border border-indigo-500 flex flex-col justify-between h-44">
+            <div class="flex items-center justify-between">
+              <div class="p-3 bg-white/10 rounded-xl backdrop-blur-sm group-hover:scale-110 transition duration-200">
+                <i class="fa-solid fa-user-check text-2xl text-indigo-100"></i>
+              </div>
+              <i class="fa-solid fa-arrow-right text-indigo-200 group-hover:translate-x-1 transition"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-lg text-white">Record Attendance</h3>
+              <p class="text-xs text-indigo-100/80 mt-1">Select your name and confirm attendance during scheduled meeting windows.</p>
+            </div>
+          </button>
+
+          <!-- Option 2: Admin Panel -->
+          <button onclick="openAdminPasswordModal()" 
+                  class="group relative bg-white hover:bg-slate-50 text-slate-800 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 text-left border-2 border-slate-200 hover:border-amber-500 flex flex-col justify-between h-44">
+            <div class="flex items-center justify-between">
+              <div class="p-3 bg-amber-50 rounded-xl group-hover:bg-amber-100 transition duration-200">
+                <i class="fa-solid fa-user-shield text-2xl text-amber-600"></i>
+              </div>
+              <i class="fa-solid fa-lock text-slate-300 group-hover:text-amber-600 group-hover:translate-x-1 transition"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-lg text-slate-900">Admin Panel</h3>
+              <p class="text-xs text-slate-500 mt-1">Schedule meetings with start & end times or add teachers to master sheets.</p>
+            </div>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- Schedule Timings Card -->
+      <div class="bg-indigo-950 text-indigo-100 rounded-2xl p-5 shadow-sm border border-indigo-800 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center space-x-3 text-sm">
+          <i class="fa-regular fa-clock text-amber-400 text-xl flex-shrink-0"></i>
+          <div>
+            <p class="font-bold text-white">Standard Meeting Time Windows</p>
+            <p class="text-xs text-indigo-300 mt-0.5"><strong>HG (Higher Grades):</strong> Tuesdays (11:20 AM - 11:45 AM) &nbsp;|&nbsp; <strong>LG (Lower Grades):</strong> Wednesdays (12:35 PM - 1:00 PM)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="attendanceSection" class="hidden fade-in bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8">
+      
+      <!-- Back Navigation Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+        <button onclick="showLandingView()" class="text-xs text-slate-500 hover:text-indigo-600 font-semibold flex items-center space-x-1.5 transition">
+          <i class="fa-solid fa-chevron-left"></i>
+          <span>Back to Main Menu</span>
+        </button>
+        <button onclick="loadTeachers()" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1.5 bg-indigo-50 px-2.5 py-1 rounded-lg">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>Reload Sheet Data</span>
+        </button>
+      </div>
+
+      <div class="mb-5">
+        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-clipboard-check text-indigo-600"></i>
+          Confirm Meeting Attendance
+        </h2>
+        
+        <!-- PROMINENTLY HIGHLIGHTED ATTENDANCE WINDOW MESSAGE -->
+        <div class="mt-3 p-3.5 bg-amber-500/10 border-2 border-amber-500/40 rounded-2xl flex items-center gap-3 text-amber-950 shadow-sm">
+          <div class="p-2 bg-amber-500 text-white rounded-xl flex-shrink-0 shadow-sm">
+            <i class="fa-solid fa-triangle-exclamation text-base"></i>
+          </div>
+          <div>
+            <p class="font-bold text-xs sm:text-sm tracking-tight text-amber-900 leading-snug">
+              Attendance submission is available only during scheduled meeting time windows.
+            </p>
+            <p class="text-[11px] text-amber-800/80 mt-0.5">The submission button is automatically locked outside this timeframe.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="meetingTitleBanner" class="mb-6 bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 shadow-sm">
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex items-start space-x-3">
+            <i class="fa-solid fa-bookmark text-amber-400 text-lg mt-1"></i>
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Available / Scheduled Meeting</p>
+              <h3 id="currentMeetingTitleDisplay" class="font-bold text-base text-amber-300 mt-0.5">-- Checking Meeting Schedule... --</h3>
+              <p id="currentMeetingTimeDisplay" class="text-xs text-slate-300 mt-1 flex items-center gap-1.5">
+                <i class="fa-regular fa-calendar-check text-indigo-300"></i>
+                <span id="meetingTimeDetails">Detecting schedule window...</span>
+              </p>
+            </div>
+          </div>
+          <span id="meetingBadgeStatus" class="text-[10px] font-mono font-bold uppercase px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 flex-shrink-0">
+            Checking
+          </span>
+        </div>
+      </div>
+
+      <form id="attendanceForm" onsubmit="handleAttendanceSubmit(event)" class="space-y-6">
+        
+        <!-- Department Selector -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+            1. Select Department <span class="text-rose-500">*</span>
+          </label>
+          <div class="grid grid-cols-2 gap-4">
+            <label id="deptLgLabel" class="flex items-center justify-center p-3.5 border-2 border-indigo-600 bg-indigo-50/60 rounded-xl cursor-pointer transition">
+              <input type="radio" name="department" value="LG" checked onchange="onDepartmentChange()" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+              <span class="ml-2 font-bold text-sm text-indigo-950">LG (Lower Grades)</span>
+            </label>
+            <label id="deptHgLabel" class="flex items-center justify-center p-3.5 border-2 border-slate-200 bg-slate-50/50 rounded-xl cursor-pointer transition">
+              <input type="radio" name="department" value="HG" onchange="onDepartmentChange()" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+              <span class="ml-2 font-bold text-sm text-slate-700">HG (Higher Grades)</span>
+            </label>
+          </div>
+          
+          <!-- DYNAMICALLY HIGHLIGHTED SCHEDULE / STATUS BADGE -->
+          <div id="scheduleAlertBadge" class="mt-3 text-xs flex items-center justify-between p-3.5 rounded-xl border transition-all duration-300">
+            <div class="flex items-center space-x-2">
+              <i id="scheduleBadgeIcon" class="fa-solid fa-circle-info"></i>
+              <span id="scheduleBadgeText" class="font-semibold">Checking meeting time window...</span>
+            </div>
+            <span id="scheduleStatusPill" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded">Status</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label for="teacherSelect" class="text-xs font-bold uppercase tracking-wider text-slate-700">
+              2. Select Your Full Name <span class="text-rose-500">*</span>
+            </label>
+            <span id="teacherCountBadge" class="text-[11px] text-slate-400 font-medium">0 teachers loaded</span>
+          </div>
+          
+          <div class="relative">
+            <select id="teacherSelect" required class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm font-medium text-slate-800 transition">
+              <option value="" disabled selected>-- Loading Teachers from Master Sheet... --</option>
+            </select>
+            <i class="fa-solid fa-user absolute left-3.5 top-3.5 text-slate-400"></i>
+          </div>
+
+          <!-- Empty Sheet Guide Banner -->
+          <div id="emptyTeacherNotice" class="hidden mt-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-start gap-2">
+            <i class="fa-solid fa-circle-exclamation mt-0.5 flex-shrink-0 text-rose-600"></i>
+            <div>
+              <p class="font-bold">No teachers detected in this sheet tab.</p>
+              <p class="mt-0.5">Please confirm that your sheet contains a tab named exactly <strong>LG Teachers</strong> or <strong>HG Teachers</strong> with headers: <code>E-Number | Teacher Full Name | Email</code>.</p>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1.5">Note: Ahmed Barakat is registered under dual schedule (LG & HG windows).</p>
+        </div>
+
+        <!-- Submit Button (Active ONLY during scheduled meeting time) -->
+        <button type="submit" id="submitAttendanceBtn" 
+                class="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-indigo-200 disabled:shadow-none transition duration-200 flex items-center justify-center space-x-2">
+          <i id="submitBtnIcon" class="fa-solid fa-check-circle"></i>
+          <span id="submitBtnText">Confirm Attendance</span>
+        </button>
+      </form>
+    </div>
+
+    <div id="adminAuthModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 fade-in">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+          <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-amber-600"></i>
+            Admin Access Required
+          </h3>
+          <button onclick="closeAdminPasswordModal()" class="text-slate-400 hover:text-slate-600 p-1">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        
+        <p class="text-xs text-slate-500 mb-4">Please enter the admin security password to configure meetings or teachers.</p>
+
+        <form onsubmit="verifyAndOpenAdmin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+              Admin Password
+            </label>
+            <div class="relative">
+              <input type="password" id="gateAdminPassword" required placeholder="Enter admin password" 
+                     class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500">
+              <i class="fa-solid fa-key absolute left-3.5 top-3 text-slate-400"></i>
+            </div>
+            <p id="adminGateError" class="text-xs text-rose-600 font-semibold mt-1.5 hidden"></p>
+          </div>
+          
+          <div class="flex gap-2 justify-end pt-2">
+            <button type="button" onclick="closeAdminPasswordModal()" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition">
+              Cancel
+            </button>
+            <button type="submit" id="unlockAdminBtn" class="px-5 py-2 text-xs bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5">
+              <i class="fa-solid fa-lock-open"></i>
+              <span>Unlock Admin Panel</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="adminSection" class="hidden fade-in bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8">
+      
+      <!-- Back Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+        <button onclick="showLandingView()" class="text-xs text-slate-500 hover:text-amber-600 font-semibold flex items-center space-x-1.5 transition">
+          <i class="fa-solid fa-chevron-left"></i>
+          <span>Back to Main Menu</span>
+        </button>
+        <span class="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-700 rounded-md">Admin Portal</span>
+      </div>
+
+      <!-- Admin Tab Switcher -->
+      <div class="flex border-b border-slate-200 mb-6 bg-slate-50 p-1 rounded-xl">
+        <button id="adminTabMeetingBtn" onclick="switchAdminSubTab('meeting')" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold transition bg-white shadow text-slate-900">
+          <i class="fa-solid fa-calendar-plus mr-1.5 text-indigo-600"></i> Schedule Meeting
+        </button>
+        <button id="adminTabTeacherBtn" onclick="switchAdminSubTab('teacher')" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900">
+          <i class="fa-solid fa-user-plus mr-1.5 text-amber-600"></i> Add Teacher
+        </button>
+      </div>
+
+      <!-- FORM A: SCHEDULE MEETING WITH START & END TIME -->
+      <div id="adminMeetingFormContainer">
+        <div class="mb-5">
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-calendar-plus text-indigo-600"></i>
+            Schedule Meeting with Active Window
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">Specify custom meeting title, date, start time, and end time. Attendance unlocks exclusively during this precise window.</p>
+        </div>
+
+        <form onsubmit="handleAdminMeetingSubmit(event)" class="space-y-4">
+          <div>
+            <label for="meetingTitleInput" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+              Meeting Title <span class="text-rose-500">*</span>
+            </label>
+            <input type="text" id="meetingTitleInput" required placeholder="e.g. Weekly Coordination & Assessment Review" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="meetingDateInput" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                Meeting Date <span class="text-rose-500">*</span>
+              </label>
+              <input type="date" id="meetingDateInput" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+            </div>
+
+            <div>
+              <label for="meetingDeptInput" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                Department <span class="text-rose-500">*</span>
+              </label>
+              <select id="meetingDeptInput" required onchange="applyDefaultMeetingTimes(this.value)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium text-slate-800">
+                <option value="LG">LG (Lower Grades)</option>
+                <option value="HG">HG (Higher Grades)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Start and End Time Inputs -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
+            <div>
+              <label for="meetingStartTimeInput" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                <i class="fa-regular fa-clock text-indigo-600 mr-1"></i> Start Time <span class="text-rose-500">*</span>
+              </label>
+              <input type="time" id="meetingStartTimeInput" required class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium">
+              <span class="text-[11px] text-slate-500 mt-1 block">When attendance unlocks</span>
+            </div>
+
+            <div>
+              <label for="meetingEndTimeInput" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                <i class="fa-regular fa-clock text-indigo-600 mr-1"></i> End Time <span class="text-rose-500">*</span>
+              </label>
+              <input type="time" id="meetingEndTimeInput" required class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium">
+              <span class="text-[11px] text-slate-500 mt-1 block">When attendance locks</span>
+            </div>
+          </div>
+
+          <button type="submit" id="addMeetingBtn" class="w-full py-3.5 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow transition flex items-center justify-center gap-2 text-xs">
+            <i class="fa-solid fa-bookmark"></i>
+            <span>Save & Schedule Meeting Window</span>
+          </button>
+        </form>
+      </div>
+
+      <div id="adminTeacherFormContainer" class="hidden">
+        <div class="mb-5">
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-user-plus text-amber-600"></i>
+            Add Teacher to Master Sheet
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">Appends to sheet tabs: <strong>LG Teachers</strong> or <strong>HG Teachers</strong> (Format: E-Number, Teacher Full Name, Email).</p>
+        </div>
+
+        <form id="adminForm" onsubmit="handleAdminSubmit(event)" class="space-y-4">
+          <div>
+            <label for="adminDept" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+              Target Master Sheet <span class="text-rose-500">*</span>
+            </label>
+            <select id="adminDept" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium text-slate-800">
+              <option value="LG">LG Teachers (Lower Grades)</option>
+              <option value="HG">HG Teachers (Higher Grades)</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="adminENumber" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+              E-Number <span class="text-rose-500">*</span>
+            </label>
+            <input type="text" id="adminENumber" required placeholder="e.g. E-1045" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+          </div>
+
+          <div>
+            <label for="adminTeacherName" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+              Teacher Full Name <span class="text-rose-500">*</span>
+            </label>
+            <input type="text" id="adminTeacherName" required placeholder="e.g. Dr. Sarah Ahmad" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+          </div>
+
+          <div>
+            <label for="adminTeacherEmail" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+              Email Address <span class="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <input type="email" id="adminTeacherEmail" placeholder="teacher@school.edu" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+          </div>
+
+          <button type="submit" id="addTeacherBtn" class="w-full py-3.5 px-6 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow transition flex items-center justify-center gap-2 text-xs">
+            <i class="fa-solid fa-plus-circle"></i>
+            <span>Add Teacher Record</span>
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="text-center py-4 border-t border-slate-200 text-xs text-slate-400">
+    <p>Teacher Attendance Management System &bull; Powered by Google Apps Script</p>
+  </footer>
+
+  <script>
+    // Hardcoded Google Apps Script Web App Endpoint URL
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxeeiZy4MbJxkxJ9_sDp-RwnM6E4dnxe50N2r6v0xQKF3DvhW8GwLsj2t1ZsLRplVvrXQ/exec";
+    
+    let authenticatedAdminPassword = "";
+    let activeMeetingWindow = null; // Stored metadata for meeting { title, date, startTime, endTime }
+
+    // Offline preview fallback data
+    const MOCK_TEACHERS = {
+      LG: [
+        { eNumber: 'E-1001', teacherName: 'Ahmed Barakat', email: 'ahmed.b@school.edu' },
+        { eNumber: 'E-1002', teacherName: 'Sarah Smith', email: 'sarah.s@school.edu' },
+        { eNumber: 'E-1003', teacherName: 'John Davis', email: 'john.d@school.edu' }
+      ],
+      HG: [
+        { eNumber: 'E-1001', teacherName: 'Ahmed Barakat', email: 'ahmed.b@school.edu' },
+        { eNumber: 'E-2001', teacherName: 'Michael Brown', email: 'michael.b@school.edu' },
+        { eNumber: 'E-2002', teacherName: 'Emma Wilson', email: 'emma.w@school.edu' }
+      ]
+    };
+
+    window.onload = function() {
+      // Set default meeting date picker to today
+      const today = new Date().toISOString().split('T')[0];
+      const dateElem = document.getElementById('meetingDateInput');
+      if (dateElem) dateElem.value = today;
+      applyDefaultMeetingTimes('LG');
+
+      // Live clock ticker
+      setInterval(updateClock, 1000);
+      updateClock();
+    };
+
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const clockElem = document.getElementById('liveClockText');
+      if (clockElem) clockElem.textContent = timeStr;
+    }
+
+    function applyDefaultMeetingTimes(dept) {
+      const startTimeInput = document.getElementById('meetingStartTimeInput');
+      const endTimeInput = document.getElementById('meetingEndTimeInput');
+      if (dept === 'LG') {
+        startTimeInput.value = "12:35";
+        endTimeInput.value = "13:00";
+      } else {
+        startTimeInput.value = "11:20";
+        endTimeInput.value = "11:45";
+      }
+    }
+
+    function openAdminPasswordModal() {
+      document.getElementById('gateAdminPassword').value = '';
+      document.getElementById('adminGateError').classList.add('hidden');
+      document.getElementById('adminAuthModal').classList.remove('hidden');
+    }
+
+    function closeAdminPasswordModal() {
+      document.getElementById('adminAuthModal').classList.add('hidden');
+    }
+
+    async function verifyAndOpenAdmin(e) {
+      e.preventDefault();
+      const inputPass = document.getElementById('gateAdminPassword').value;
+      const unlockBtn = document.getElementById('unlockAdminBtn');
+      const errElem = document.getElementById('adminGateError');
+
+      unlockBtn.disabled = true;
+      unlockBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...`;
+      errElem.classList.add('hidden');
+
+      try {
+        const response = await callBackend("verifyAdminPassword", { password: inputPass });
+        unlockBtn.disabled = false;
+        unlockBtn.innerHTML = `<i class="fa-solid fa-lock-open"></i> Unlock Admin Panel`;
+
+        if (response.success) {
+          authenticatedAdminPassword = inputPass;
+          closeAdminPasswordModal();
+          showAdminSection();
+        } else {
+          errElem.textContent = response.message || "Incorrect admin password.";
+          errElem.classList.remove('hidden');
+        }
+      } catch (err) {
+        unlockBtn.disabled = false;
+        unlockBtn.innerHTML = `<i class="fa-solid fa-lock-open"></i> Unlock Admin Panel`;
+        errElem.textContent = "Error authenticating: " + err.message;
+        errElem.classList.remove('hidden');
+      }
+    }
+
+    function showLandingView() {
+      hideNotification();
+      document.getElementById('landingView').classList.remove('hidden');
+      document.getElementById('attendanceSection').classList.add('hidden');
+      document.getElementById('adminSection').classList.add('hidden');
+    }
+
+    function showAttendanceSection() {
+      hideNotification();
+      document.getElementById('landingView').classList.add('hidden');
+      document.getElementById('attendanceSection').classList.remove('hidden');
+      document.getElementById('adminSection').classList.add('hidden');
+      loadTeachers();
+    }
+
+    function showAdminSection() {
+      hideNotification();
+      document.getElementById('landingView').classList.add('hidden');
+      document.getElementById('attendanceSection').classList.add('hidden');
+      document.getElementById('adminSection').classList.remove('hidden');
+    }
+
+    function switchAdminSubTab(tab) {
+      const teacherForm = document.getElementById('adminTeacherFormContainer');
+      const meetingForm = document.getElementById('adminMeetingFormContainer');
+      const teacherTabBtn = document.getElementById('adminTabTeacherBtn');
+      const meetingTabBtn = document.getElementById('adminTabMeetingBtn');
+
+      if (tab === 'teacher') {
+        teacherForm.classList.remove('hidden');
+        meetingForm.classList.add('hidden');
+        teacherTabBtn.className = "flex-1 py-2 px-3 rounded-lg text-xs font-bold transition bg-white shadow text-slate-900";
+        teacherTabBtn.className = "flex-1 py-2 px-3 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900";
+      }
+    }
+
+    /**
+     * Converts time string (e.g. "10:00 AM", "1:00 PM", "13:00", or "01:00") into minutes from midnight
+     */
+    function parseTimeToMinutes(timeStr) {
+      if (!timeStr && timeStr !== 0) return null;
+      const str = String(timeStr).trim();
+
+      // Check for AM/PM format
+      const match = str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+      if (match) {
+        let hours = parseInt(match[1], 10);
+        const minutes = parseInt(match[2], 10);
+        const period = match[3] ? match[3].toUpperCase() : null;
+
+        if (period === 'PM' && hours < 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+
+        return hours * 60 + minutes;
+      }
+      return null;
+    }
+
+    /**
+     * Standardizes time string for display (e.g. "10:00 AM", "1:00 PM")
+     */
+    function formatTimeDisplay(timeStr) {
+      const mins = parseTimeToMinutes(timeStr);
+      if (mins === null) return timeStr || '';
+      let hours = Math.floor(mins / 60);
+      const m = mins % 60;
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return `${hours}:${String(m).padStart(2, '0')} ${ampm}`;
+    }
+
+    function checkMeetingActiveStatus(dept, meetingData) {
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+      // Case 1: Custom meeting scheduled with specific date and time window
+      if (meetingData && meetingData.title && meetingData.startTime && meetingData.endTime) {
+        let isDateMatch = true;
+        if (meetingData.date) {
+          // Compare against local calendar date (YYYY-MM-DD)
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const day = String(now.getDate()).padStart(2, '0');
+          const nowStr = `${year}-${month}-${day}`;
+
+          let mDateStr = "";
+          if (meetingData.date instanceof Date) {
+            const my = meetingData.date.getFullYear();
+            const mm = String(meetingData.date.getMonth() + 1).padStart(2, '0');
+            const md = String(meetingData.date.getDate()).padStart(2, '0');
+            mDateStr = `${my}-${mm}-${md}`;
+          } else if (typeof meetingData.date === 'string') {
+            mDateStr = meetingData.date.trim().split('T')[0];
+          }
+
+          if (mDateStr && mDateStr !== nowStr) {
+            isDateMatch = false;
+            return {
+              isActive: false,
+              hasMeeting: true,
+              label: `${mDateStr} (${formatTimeDisplay(meetingData.startTime)} - ${formatTimeDisplay(meetingData.endTime)})`,
+              reason: `Scheduled for ${mDateStr}`
+            };
+          }
+        }
+
+        let startMins = parseTimeToMinutes(meetingData.startTime);
+        let endMins = parseTimeToMinutes(meetingData.endTime);
+
+        // Smart afternoon resolution: if end time is numerically smaller than start time (e.g. 10:00 [600] to 01:00 [60]),
+        // it signifies a crossing into the afternoon (1:00 PM = 780 mins).
+        if (startMins !== null && endMins !== null && endMins < startMins && endMins <= 720) {
+          endMins += 720;
+        }
+
+        const active = isDateMatch && startMins !== null && endMins !== null && currentMinutes >= startMins && currentMinutes <= endMins;
+        const displayLabel = `${formatTimeDisplay(meetingData.startTime)} - ${formatTimeDisplay(meetingData.endTime)}`;
+
+        return {
+          isActive: active,
+          hasMeeting: true,
+          label: displayLabel,
+          reason: active ? "Window currently open" : "Outside scheduled time window"
+        };
+      }
+
+      // Case 2: No meeting scheduled in the sheet
+      if (!meetingData || !meetingData.title) {
+        return {
+          isActive: false,
+          hasMeeting: false,
+          label: "No scheduled meeting",
+          reason: "No meetings are scheduled"
+        };
+      }
+
+      // Case 3: Fallback default schedule
+      const day = now.getDay();
+      if (dept === 'LG') {
+        const active = day === 3 && currentMinutes >= (12 * 60 + 35) && currentMinutes <= (13 * 60);
+        return {
+          isActive: active,
+          hasMeeting: true,
+          label: "Wednesdays (12:35 PM - 1:00 PM)",
+          reason: active ? "Window currently open" : "Only active on Wednesdays (12:35 PM - 1:00 PM)"
+        };
+      } else {
+        const active = day === 2 && currentMinutes >= (11 * 60 + 20) && currentMinutes <= (11 * 60 + 45);
+        return {
+          isActive: active,
+          hasMeeting: true,
+          label: "Tuesdays (11:20 AM - 11:45 AM)",
+          reason: active ? "Window currently open" : "Only active on Tuesdays (11:20 AM - 11:45 AM)"
+        };
+      }
+    }
+
+    async function callBackend(action, data = {}) {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(res => resolve(res))
+            .withFailureHandler(err => reject(err))[action](data);
+        });
+      }
+
+      if (GAS_WEB_APP_URL) {
+        try {
+          if (action === "getTeachersList") {
+            const resp = await fetch(`${GAS_WEB_APP_URL}?action=getTeachersList&department=${encodeURIComponent(data)}`);
+            return await resp.json();
+          } else {
+            const resp = await fetch(GAS_WEB_APP_URL, {
+              method: 'POST',
+              body: JSON.stringify({ action: action, data: data })
+            });
+            return await resp.json();
+          }
+        } catch (e) {
+          console.warn("GAS Connection Warning, falling back to mock preview:", e);
+        }
+      }
+
+      // Offline Preview Fallback
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          if (action === "getTeachersList") {
+            resolve({
+              success: true,
+              teachers: MOCK_TEACHERS[data] || [],
+              meetingTitle: `${data} Weekly Coordination Meeting`,
+              startTime: data === 'LG' ? '12:35' : '11:20',
+              endTime: data === 'LG' ? '13:00' : '11:45',
+              date: new Date().toISOString().split('T')[0]
+            });
+          } else if (action === "verifyAdminPassword") {
+            resolve({ success: data.password === "Pakistan@1947", message: "Authenticated." });
+          } else if (action === "submitAttendance") {
+            resolve({ success: true, message: `[Preview Mode] Attendance logged for ${data.teacherName}.` });
+          } else if (action === "addTeacherAdmin" || action === "addMeetingAdmin") {
+            resolve({ success: true, message: `[Preview Mode] Action recorded successfully.` });
+          }
+        }, 300);
+      });
+    }
+
+    async function onDepartmentChange() {
+      await loadTeachers();
+    }
+
+    function normalizeTeacherRecord(raw) {
+      if (!raw) return null;
+      if (Array.isArray(raw)) {
+        if (raw.length === 0) return null;
+        const eNum = String(raw[0] || '').trim();
+        const name = String(raw[1] || '').trim();
+        const mail = String(raw[2] || '').trim();
+        if (name.toLowerCase() === 'teacher full name' || name.toLowerCase() === 'name') return null;
+        return { eNumber: eNum, teacherName: name, email: mail };
+      }
+      const eNum = String(raw.eNumber || raw['E-Number'] || raw['e-number'] || raw['ENumber'] || raw['Employee ID'] || raw['ID'] || '').trim();
+      const name = String(raw.teacherName || raw['Teacher Full Name'] || raw['Full Name'] || raw['Name'] || raw['teacher_name'] || '').trim();
+      const mail = String(raw.email || raw['Email'] || raw['Email Address'] || '').trim();
+      if (!name || name.toLowerCase() === 'teacher full name') return null;
+      return { eNumber: eNum, teacherName: name, email: mail };
+    }
+
+    async function loadTeachers() {
+      const selectedDept = document.querySelector('input[name="department"]:checked').value;
+      const selectElem = document.getElementById('teacherSelect');
+      const meetingDisplay = document.getElementById('currentMeetingTitleDisplay');
+      const meetingTimeDetails = document.getElementById('meetingTimeDetails');
+      const meetingBadgeStatus = document.getElementById('meetingBadgeStatus');
+      const badge = document.getElementById('scheduleAlertBadge');
+      const badgeText = document.getElementById('scheduleBadgeText');
+      const badgeIcon = document.getElementById('scheduleBadgeIcon');
+      const statusPill = document.getElementById('scheduleStatusPill');
+      const lgLabel = document.getElementById('deptLgLabel');
+      const hgLabel = document.getElementById('deptHgLabel');
+      const submitBtn = document.getElementById('submitAttendanceBtn');
+      const submitBtnText = document.getElementById('submitBtnText');
+      const submitBtnIcon = document.getElementById('submitBtnIcon');
+      const countBadge = document.getElementById('teacherCountBadge');
+      const emptyNotice = document.getElementById('emptyTeacherNotice');
+
+      // Update Radio Tab Selection styling
+      if (selectedDept === 'LG') {
+        lgLabel.className = "flex items-center justify-center p-3.5 border-2 border-indigo-600 bg-indigo-50/60 rounded-xl cursor-pointer transition";
+        hgLabel.className = "flex items-center justify-center p-3.5 border-2 border-slate-200 bg-slate-50/50 rounded-xl cursor-pointer transition";
+      } else {
+        hgLabel.className = "flex items-center justify-center p-3.5 border-2 border-indigo-600 bg-indigo-50/60 rounded-xl cursor-pointer transition";
+        lgLabel.className = "flex items-center justify-center p-3.5 border-2 border-slate-200 bg-slate-50/50 rounded-xl cursor-pointer transition";
+      }
+
+      selectElem.innerHTML = `<option value="" disabled selected>-- Loading Teachers from ${selectedDept} Teachers tab... --</option>`;
+      selectElem.disabled = true;
+      meetingDisplay.textContent = "-- Loading Meeting Details... --";
+      emptyNotice.classList.add('hidden');
+
+      try {
+        const response = await callBackend("getTeachersList", selectedDept);
+        
+        let rawTeachers = response.teachers || [];
+        const rawTitle = response.meetingTitle ? String(response.meetingTitle).trim() : "";
+        
+        activeMeetingWindow = {
+          title: rawTitle !== "" ? rawTitle : null,
+          date: response.date || null,
+          startTime: response.startTime || null,
+          endTime: response.endTime || null
+        };
+
+        // If no meeting is available, show 'No meetings are scheduled'
+        if (!activeMeetingWindow.title) {
+          meetingDisplay.textContent = "No meetings are scheduled";
+          meetingTimeDetails.textContent = "No active or upcoming meeting scheduled in 'Meetings' sheet.";
+          meetingBadgeStatus.textContent = "NO SCHEDULE";
+          meetingBadgeStatus.className = "text-[10px] font-mono font-bold uppercase px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700";
+        } else {
+          meetingDisplay.textContent = activeMeetingWindow.title;
+          const timeWindowStr = (activeMeetingWindow.startTime && activeMeetingWindow.endTime)
+            ? `${activeMeetingWindow.startTime} - ${activeMeetingWindow.endTime}`
+            : (selectedDept === 'LG' ? "12:35 PM - 1:00 PM" : "11:20 AM - 11:45 AM");
+          meetingTimeDetails.textContent = activeMeetingWindow.date ? `Date: ${activeMeetingWindow.date} • Window: ${timeWindowStr}` : `Window: ${timeWindowStr}`;
+          meetingBadgeStatus.textContent = "SCHEDULED";
+          meetingBadgeStatus.className = "text-[10px] font-mono font-bold uppercase px-2.5 py-1 rounded-lg bg-indigo-900 text-amber-300 border border-indigo-700";
+        }
+
+        // Evaluate whether the attendance window is ACTIVE
+        const windowStatus = checkMeetingActiveStatus(selectedDept, activeMeetingWindow);
+
+        if (windowStatus.isActive) {
+          badge.className = "mt-3 text-xs flex items-center justify-between p-3.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-950 font-semibold shadow-sm transition";
+          badgeIcon.className = "fa-solid fa-circle-check text-emerald-600 text-sm";
+          badgeText.textContent = `ACTIVE NOW • ${selectedDept} Window (${windowStatus.label})`;
+          statusPill.textContent = "ACTIVE";
+          statusPill.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-200 text-emerald-900";
+          
+          submitBtn.disabled = false;
+          submitBtnText.textContent = "Confirm Attendance";
+          submitBtnIcon.className = "fa-solid fa-check-circle";
+        } else {
+          badge.className = "mt-3 text-xs flex items-center justify-between p-3.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-950 font-semibold shadow-sm transition";
+          badgeIcon.className = "fa-solid fa-lock text-amber-600 text-sm";
+          
+          if (!windowStatus.hasMeeting) {
+            badgeText.textContent = `WINDOW LOCKED • No meetings are scheduled for ${selectedDept}`;
+            statusPill.textContent = "UNAVAILABLE";
+            statusPill.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-slate-200 text-slate-700";
+          } else {
+            badgeText.textContent = `WINDOW CLOSED • ${selectedDept} Schedule: ${windowStatus.label}`;
+            statusPill.textContent = "LOCKED";
+            statusPill.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-200 text-amber-900";
+          }
+          
+          submitBtn.disabled = true;
+          submitBtnText.textContent = "Attendance Locked (Outside Meeting Time)";
+          submitBtnIcon.className = "fa-solid fa-lock";
+        }
+
+        // Normalize teacher list
+        const teachers = rawTeachers.map(normalizeTeacherRecord).filter(t => t && t.teacherName);
+        countBadge.textContent = `${teachers.length} teachers found`;
+
+        selectElem.innerHTML = '';
+
+        if (teachers.length === 0) {
+          selectElem.innerHTML = `<option value="" disabled selected>No teachers found in '${selectedDept} Teachers' tab.</option>`;
+          selectElem.disabled = true;
+          emptyNotice.classList.remove('hidden');
+          return;
+        }
+
+        selectElem.innerHTML = `<option value="" disabled selected>-- Select Your Full Name (${teachers.length} Teachers) --</option>`;
+        teachers.forEach(function(teacher) {
+          const option = document.createElement('option');
+          option.value = JSON.stringify(teacher);
+          option.textContent = `${teacher.teacherName} (${teacher.eNumber || 'No ID'})`;
+          selectElem.appendChild(option);
+        });
+
+        selectElem.disabled = false;
+
+      } catch (err) {
+        selectElem.innerHTML = `<option value="" disabled selected>Error connecting to Google Sheet.</option>`;
+        meetingDisplay.textContent = "No meetings are scheduled";
+        meetingTimeDetails.textContent = "Could not connect to Google Apps Script endpoint.";
+        countBadge.textContent = "Error";
+        showNotification('error', 'Connection Error', err.message);
+      }
+    }
+
+    async function handleAttendanceSubmit(e) {
+      e.preventDefault();
+
+      const selectedDept = document.querySelector('input[name="department"]:checked').value;
+      
+      // Strict client-side time-window enforcement
+      const windowStatus = checkMeetingActiveStatus(selectedDept, activeMeetingWindow);
+      if (!windowStatus.isActive) {
+        showNotification('error', 'Window Closed', 'Attendance submission is available only during scheduled meeting time windows.');
+        return;
+      }
+
+      const teacherSelectVal = document.getElementById('teacherSelect').value;
+      const submitBtn = document.getElementById('submitAttendanceBtn');
+
+      if (!teacherSelectVal) {
+        showNotification('error', 'Selection Required', 'Please select your name from the dropdown menu.');
+        return;
+      }
+
+      const teacherObj = JSON.parse(teacherSelectVal);
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Recording Attendance...</span>`;
+      hideNotification();
+
+      const payload = {
+        department: selectedDept,
+        eNumber: teacherObj.eNumber,
+        teacherName: teacherObj.teacherName,
+        email: teacherObj.email || '',
+        meetingTitle: (activeMeetingWindow && activeMeetingWindow.title) ? activeMeetingWindow.title : `${selectedDept} Meeting`,
+        meetingDate: (activeMeetingWindow && activeMeetingWindow.date) ? activeMeetingWindow.date : ''
+      };
+
+      try {
+        const response = await callBackend("submitAttendance", payload);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Confirm Attendance</span>`;
+
+        if (response.success) {
+          showNotification('success', 'Attendance Confirmed!', response.message || `Attendance logged for ${teacherObj.teacherName}.`);
+          document.getElementById('teacherSelect').selectedIndex = 0;
+        } else {
+          showNotification('error', 'Submission Denied', response.message);
+        }
+      } catch (err) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Confirm Attendance</span>`;
+        showNotification('error', 'Server Error', err.message);
+      }
+    }
+
+    async function handleAdminSubmit(e) {
+      e.preventDefault();
+
+      const targetDept = document.getElementById('adminDept').value;
+      const eNumber = document.getElementById('adminENumber').value.trim();
+      const teacherName = document.getElementById('adminTeacherName').value.trim();
+      const email = document.getElementById('adminTeacherEmail').value.trim();
+      const addBtn = document.getElementById('addTeacherBtn');
+
+      addBtn.disabled = true;
+      addBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Adding Record...</span>`;
+      hideNotification();
+
+      const payload = {
+        password: authenticatedAdminPassword || "Pakistan@1947",
+        department: targetDept,
+        eNumber: eNumber,
+        teacherName: teacherName,
+        email: email
+      };
+
+      try {
+        const response = await callBackend("addTeacherAdmin", payload);
+        addBtn.disabled = false;
+        addBtn.innerHTML = `<i class="fa-solid fa-plus-circle"></i><span>Add Teacher Record</span>`;
+
+        if (response.success) {
+          showNotification('success', 'Teacher Added!', response.message || `Added ${teacherName} to ${targetDept} Teachers sheet.`);
+          document.getElementById('adminENumber').value = '';
+          document.getElementById('adminTeacherName').value = '';
+          document.getElementById('adminTeacherEmail').value = '';
+        } else {
+          showNotification('error', 'Action Failed', response.message);
+        }
+      } catch (err) {
+        addBtn.disabled = false;
+        addBtn.innerHTML = `<i class="fa-solid fa-plus-circle"></i><span>Add Teacher Record</span>`;
+        showNotification('error', 'Server Error', err.message);
+      }
+    }
+
+    async function handleAdminMeetingSubmit(e) {
+      e.preventDefault();
+
+      const title = document.getElementById('meetingTitleInput').value.trim();
+      const date = document.getElementById('meetingDateInput').value;
+      const dept = document.getElementById('meetingDeptInput').value;
+      const startTime = document.getElementById('meetingStartTimeInput').value;
+      const endTime = document.getElementById('meetingEndTimeInput').value;
+      const addBtn = document.getElementById('addMeetingBtn');
+
+      if (startTime >= endTime) {
+        showNotification('error', 'Invalid Time Window', 'Meeting End Time must be later than Start Time.');
+        return;
+      }
+
+      addBtn.disabled = true;
+      addBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Scheduling Meeting...</span>`;
+      hideNotification();
+
+      const payload = {
+        password: authenticatedAdminPassword || "Pakistan@1947",
+        meetingTitle: title,
+        date: date,
+        department: dept,
+        startTime: startTime,
+        endTime: endTime
+      };
+
+      try {
+        const response = await callBackend("addMeetingAdmin", payload);
+        addBtn.disabled = false;
+        addBtn.innerHTML = `<i class="fa-solid fa-bookmark"></i><span>Save & Schedule Meeting Window</span>`;
+
+        if (response.success) {
+          showNotification('success', 'Meeting Scheduled!', response.message || `Meeting "${title}" set for ${date} from ${startTime} to ${endTime}.`);
+          document.getElementById('meetingTitleInput').value = '';
+        } else {
+          showNotification('error', 'Action Failed', response.message);
+        }
+      } catch (err) {
+        addBtn.disabled = false;
+        addBtn.innerHTML = `<i class="fa-solid fa-bookmark"></i><span>Save & Schedule Meeting Window</span>`;
+        showNotification('error', 'Server Error', err.message);
+      }
+    }
+
+    function showNotification(type, title, message) {
+      const banner = document.getElementById('notificationBanner');
+      const icon = document.getElementById('notificationIcon');
+      const titleElem = document.getElementById('notificationTitle');
+      const messageElem = document.getElementById('notificationMessage');
+
+      titleElem.textContent = title;
+      messageElem.textContent = message;
+
+      if (type === 'success') {
+        banner.className = "p-4 rounded-xl shadow-sm border flex items-start space-x-3 bg-emerald-50 border-emerald-200 text-emerald-950 fade-in";
+        icon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i>`;
+      } else {
+        banner.className = "p-4 rounded-xl shadow-sm border flex items-start space-x-3 bg-rose-50 border-rose-200 text-rose-950 fade-in";
+        icon.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-600"></i>`;
+      }
+
+      banner.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function hideNotification() {
+      document.getElementById('notificationBanner').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
